@@ -24,6 +24,6 @@ jobs:
       - name: Installing priority-queue and its dependencies
         run: raco pkg install --no-docs --auto --name priority-queue
       - name: Compiling priority-queue and building its docs
-        run: raco setup --check-pkg-deps --unused-pkg-deps priority-queue
+        run: raco setup --check-pkg-deps --unused-pkg-deps priority-queue data
       - name: Testing priority-queue
         run: raco test -x -p priority-queue
