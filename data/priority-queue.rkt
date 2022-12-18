@@ -23,7 +23,7 @@
   [priority-queue->sorted-list (-> priority-queue? list?)]
   [priority-queue->sorted-vector (-> priority-queue? vector?)]
   [priority-queue->sorted-vector! (-> priority-queue? (and/c vector? (not/c immutable?)) vector?)]
-
+  [in-priority-queue! (-> priority-queue? sequence?)]
   ))
 
 (define (pq=? a b equal-wrapper?)
@@ -50,7 +50,7 @@
    (define (hash2-proc a hash-code)
      (hash-code (priority-queue->sorted-vector a)))]
   #:property prop:sequence
-  (lambda (pq) (in-list (reverse (priority-queue->sorted-list pq))))
+  (lambda (pq) (in-priority-queue! pq))
   )
 
 (define (make-priority-queue lt? . elems)
@@ -176,6 +176,17 @@
            (vector-bubble-down result 0 i (priority-queue-ordering pq))
            (loop (- i 1)))))))
 
+(define (in-priority-queue! pq)
+  (make-do-sequence
+   (lambda ()
+     (values
+      priority-queue-peek-max
+      (lambda (pq) (priority-queue-remove-max! pq) pq)
+      pq
+      (lambda (pq) (not (priority-queue-empty? pq)))
+      #f
+      #f))))
+
 (module+ test
   (require rackunit racket/list)
 
@@ -200,6 +211,11 @@
   (define a (list->priority-queue < (range 1 11)))
   (define b (list->priority-queue < (range 10 0 -1)))
   (check-true (equal? a b))
-  (check-equal? (priority-queue->sorted-vector a) '#(1 2 3 4 5 6 7 8 9 10))
-
+  (check-equal? (priority-queue->sorted-vector a)
+                '#(1 2 3 4 5 6 7 8 9 10))
+  (check-equal? (for/list ([elem (in-priority-queue! b)]) elem)
+                '(10 9 8 7 6 5 4 3 2 1))
+  (check-equal? (for/list ([elem (in-priority-queue! (make-priority-queue <))]) elem)
+                '())
+  
   )

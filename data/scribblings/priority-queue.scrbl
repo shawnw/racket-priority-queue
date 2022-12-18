@@ -9,7 +9,7 @@
 
 Imperative max priority queues. Currently implemented with a binary heap, but that is an internal detail that is subject to change in the future.
 
-A priority queue is also a @code{sequence?} that iterates elements in order from highest priority to lowest. Two priority queues are @code{equal?} if they have @code{equal?} comparison functions, contain the same number of elements and when sorted by priority each corresponding pair of elements are @code{equal?}. This can be an expensive operation.
+ Two priority queues are @code{equal?} if they have @code{equal?} comparison functions, contain the same number of elements and when sorted by priority each corresponding pair of elements are @code{equal?}. This can be an expensive operation.
 
 @section{Predicates}
 
@@ -62,6 +62,14 @@ A priority queue is also a @code{sequence?} that iterates elements in order from
 @defproc[(priority-queue-remove-max! [pq (and/c priority-queue? (not/c priority-queue-empty?))]) any/c]{
 
  Remove and return the element with the highest priority. It is an error to call on an empty priority queue.
+
+}
+
+@defproc[(in-priority-queue! [pq priority-queue?]) sequence?]{
+
+ Returns a sequence that destructively returns the elements of the queue in order from highest priority to lowest. After the sequence is consumed, the priority queue will be empty.
+
+A priority queue can be used directly as a @code{sequence?} with the same effect.
 
 }
 
