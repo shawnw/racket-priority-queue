@@ -107,6 +107,26 @@
       (flexvector-swap! fv i largest)
       (bubble-down fv largest <?))))
 
+(define (vector-swap! v i j)
+  (let ([tmp (vector-ref v i)])
+    (vector-set! v i (vector-ref v j))
+    (vector-set! v j tmp)))
+
+(define (vector-bubble-down v i end <?)
+  (let* ([left (+ (* 2 i) 1)]
+         [right (+ (* 2 i) 2)]
+         [largest (if (and (< left end)
+                           (<? (vector-ref v i) (vector-ref v left)))
+                      left
+                      i)]
+         [largest (if (and (< right end)
+                           (<? (vector-ref v largest) (vector-ref v right)))
+                      right
+                      largest)])
+    (unless (= i largest)
+      (vector-swap! v i largest)
+      (vector-bubble-down v largest end <?))))
+
 (define (heap-remove-max! fv <?)
   (flexvector-swap! fv 0 (- (flexvector-length fv) 1))
   (flexvector-remove-back! fv)
@@ -142,18 +162,19 @@
             (loop (cons max-elem result)))))))
 
 (define (priority-queue->sorted-vector pq)
-  (priority-queue->sorted-vector! pq (make-vector (flexvector-length (priority-queue-contents pq)))))
+  (priority-queue->sorted-vector! pq (make-vector (priority-queue-length pq))))
 
 (define (priority-queue->sorted-vector! pq result)
-  (let* ([fv (flexvector-copy (priority-queue-contents pq))])
-    (let loop ([i (- (flexvector-length fv) 1)])
-      (cond
-        ((flexvector-empty? fv)
-          result)
-        (else
-         (vector-set! result i (flexvector-ref fv 0))
-         (heap-remove-max! fv (priority-queue-ordering pq))
-         (loop (- i 1)))))))
+  (priority-queue->vector! pq result)
+  (if (priority-queue-empty? pq)
+      result
+      (let loop ([i (- (priority-queue-length pq) 1)])
+        (cond
+          ((= i 0) result)
+          (else
+           (vector-swap! result 0 i)
+           (vector-bubble-down result 0 i (priority-queue-ordering pq))
+           (loop (- i 1)))))))
 
 (module+ test
   (require rackunit racket/list)
@@ -179,5 +200,6 @@
   (define a (list->priority-queue < (range 1 11)))
   (define b (list->priority-queue < (range 10 0 -1)))
   (check-true (equal? a b))
+  (check-equal? (priority-queue->sorted-vector a) '#(1 2 3 4 5 6 7 8 9 10))
 
   )
