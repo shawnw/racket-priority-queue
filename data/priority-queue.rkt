@@ -11,6 +11,7 @@
   [list->priority-queue (-> (-> any/c any/c any/c) list? priority-queue?)]
   [vector->priority-queue (-> (-> any/c any/c any/c) vector? priority-queue?)]
   [priority-queue-copy (-> priority-queue? priority-queue?)]
+  [priority-queue-map (->* ((-> any/c any/c) priority-queue?) ((-> any/c any/c any/c)) priority-queue?)]
   [priority-queue-length (-> priority-queue? exact-nonnegative-integer?)]
   [priority-queue-empty? (-> priority-queue? boolean?)]
   [priority-queue-ordering (-> priority-queue? (-> any/c any/c any/c))]
@@ -61,6 +62,9 @@
 
 (define (vector->priority-queue lt? elems)
   (flexvector->priority-queue! lt? (vector->flexvector elems)))
+
+(define (priority-queue-map f pq [lt? (priority-queue-ordering pq)])
+  (flexvector->priority-queue! lt? (flexvector-map f (priority-queue-contents pq))))
 
 (define (flexvector->priority-queue! lt? fv)
   (when (> (flexvector-length fv) 1)
@@ -217,5 +221,6 @@
                 '(10 9 8 7 6 5 4 3 2 1))
   (check-equal? (for/list ([elem (in-priority-queue! (make-priority-queue <))]) elem)
                 '())
+  (check-equal? (priority-queue->sorted-list (priority-queue-map add1 (list->priority-queue < (range 1 11)) >)) '(11 10 9 8 7 6 5 4 3 2))
   
   )

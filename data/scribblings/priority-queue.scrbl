@@ -93,6 +93,13 @@ A priority queue can be used directly as a @code{sequence?} with the same effect
 
 }
 
+@defproc[(priority-queue-map [f (-> any/c any/c)] [pq priority-queue?] [< (-> any/c any/c any/c) (priority-queue-ordering pq)])
+         priority-queue?]{
+
+ Returns a new priority queue that's created from the results of calling @code{f} on each element of @code{pq} in an unspecified order. The optional third argument controls the ordering of the new queue; if omitted, the same comparision function used by @code{pq} is used.
+
+}
+
 @defproc[(priority-queue->list [pq priority-queue?]) list?]{
 
  Return a list of the elements of the queue in an unspecified order.
