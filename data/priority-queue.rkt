@@ -2,7 +2,7 @@
 
 ;;; Priority queue
 
-(require racket/contract srfi/214)
+(require racket/contract racket/function srfi/214)
 
 (provide
  (contract-out
@@ -18,6 +18,7 @@
   [priority-queue-insert! (-> priority-queue? any/c void?)]
   [priority-queue-remove-max! (-> (and/c priority-queue? (not/c priority-queue-empty?)) any/c)]
   [priority-queue-peek-max (-> (and/c priority-queue? (not/c priority-queue-empty?)) any/c)]
+  [priority-queue-remove! (->* (priority-queue? any/c) ((-> any/c any/c any/c)) boolean?)]
   [priority-queue->list (-> priority-queue? list?)]
   [priority-queue->vector (-> priority-queue? vector?)]
   [priority-queue->vector! (-> priority-queue? (and/c vector? (not/c immutable?)) vector?)]
@@ -144,6 +145,26 @@
         (heap-remove-max! fv (priority-queue-ordering pq)))
     max-elem))
 
+(define (priority-queue-remove! pq elem [=? equal?])
+  (let* ([fv (priority-queue-contents pq)]
+         [<? (priority-queue-ordering pq)]
+         [i (flexvector-index (curry =? elem) fv)])
+    (cond
+      ((eq? i #f) #f)
+      ((= i (- (flexvector-length fv) 1))
+       (flexvector-remove-back! fv)
+       #t)
+      (else
+       (let ([elem (flexvector-ref fv i)])
+         (flexvector-swap! fv i (- (flexvector-length fv) 1))
+         (flexvector-remove-back! fv)
+         (cond
+           ((<? (flexvector-ref fv i) elem)
+            (bubble-down fv i <?))
+           ((<? elem (flexvector-ref fv i))
+            (bubble-up fv i <?)))
+         #t)))))
+
 (define (priority-queue->list pq)
   (flexvector->list (priority-queue-contents pq)))
 
@@ -187,7 +208,7 @@
       priority-queue-peek-max
       (lambda (pq) (priority-queue-remove-max! pq) pq)
       pq
-      (lambda (pq) (not (priority-queue-empty? pq)))
+      (negate priority-queue-empty?)
       #f
       #f))))
 
@@ -222,5 +243,12 @@
   (check-equal? (for/list ([elem (in-priority-queue! (make-priority-queue <))]) elem)
                 '())
   (check-equal? (priority-queue->sorted-list (priority-queue-map add1 (list->priority-queue < (range 1 11)) >)) '(11 10 9 8 7 6 5 4 3 2))
+
+  (priority-queue-insert! p 1)
+  (priority-queue-insert! p 4)
+  (priority-queue-insert! p 3)
+  (check-false (priority-queue-remove! p 6))
+  (check-true (priority-queue-remove! p 3 =))
+  (check-true (priority-queue-remove! p 4))
   
   )

@@ -65,6 +65,14 @@ Imperative max priority queues. Currently implemented with a binary heap, but th
 
 }
 
+@defproc[(priority-queue-remove! [pq priority-queue?] [elem any/c] [=? (-> any/c any/c any/c) equal?]) boolean?]{
+
+ Remove one element of the priority queue that is equal to @code{elem} according to @code{=?}. Returns true if such an element was found and removed, and false if not.
+
+ If the queue has multiple elements that can compare equal to the given one, it is unspecified which one is removed.
+
+}
+
 @defproc[(in-priority-queue! [pq priority-queue?]) sequence?]{
 
  Returns a sequence that destructively returns the elements of the queue in order from highest priority to lowest. After the sequence is consumed, the priority queue will be empty.
